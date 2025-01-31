@@ -1,0 +1,25 @@
+{
+  "name": "calculator",
+  "version": "0.0.1",
+  "description": "calculator MCP server",
+  "type": "module",
+  "bin": {
+    "calculator": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "mcp-build",
+    "prepare": "npm run build",
+    "watch": "tsc --watch",
+    "start": "npm run build && node dist/index.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.24",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "mcp-framework": "^0.1.21-beta.12"
+  }
+}
