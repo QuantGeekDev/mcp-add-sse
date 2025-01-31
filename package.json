@@ -10,10 +10,9 @@
     "dist"
   ],
   "scripts": {
-    "build": "mcp-build",
-    "prepare": "npm run build",
-    "watch": "tsc --watch",
-    "start": "npm run build && node dist/index.js"
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "watch": "tsc --watch"
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
