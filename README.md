@@ -1,4 +1,5 @@
 # calculator
+[![smithery badge](https://smithery.ai/badge/@QuantGeekDev/mcp-add-sse)](https://smithery.ai/server/@QuantGeekDev/mcp-add-sse)
 
 A Model Context Protocol (MCP) server built with mcp-framework.
 
@@ -100,6 +101,14 @@ After publishing, users can add it to their claude desktop client (read below) o
 ```
 
 ## Using with Claude Desktop
+
+### Installing via Smithery
+
+To install Calculator for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@QuantGeekDev/mcp-add-sse):
+
+```bash
+npx -y @smithery/cli install @QuantGeekDev/mcp-add-sse --client claude
+```
 
 ### Local Development
 
