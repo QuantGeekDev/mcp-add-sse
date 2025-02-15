@@ -1,6 +1,6 @@
-import { JWTAuthProvider, MCPServer } from "mcp-framework";
+import { APIKeyAuthProvider, MCPServer } from "mcp-framework";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+const API_KEY = process.env.API_KEY || "secret";
 const PORT = parseInt(process.env.PORT || "1337", 10);
 
 const server = new MCPServer(
@@ -10,7 +10,7 @@ const server = new MCPServer(
       options: {
         port: PORT,
         auth: {
-          provider: new JWTAuthProvider({ secret: JWT_SECRET })
+          provider: new APIKeyAuthProvider({ keys: [API_KEY] })
         }
       }
     }
