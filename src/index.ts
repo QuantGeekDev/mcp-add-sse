@@ -1,6 +1,5 @@
-import { APIKeyAuthProvider, MCPServer } from "mcp-framework";
+import { MCPServer } from "mcp-framework";
 
-const API_KEY = process.env.API_KEY || "secret";
 const PORT = parseInt(process.env.PORT || "1337", 10);
 
 const server = new MCPServer(
@@ -9,9 +8,6 @@ const server = new MCPServer(
       type: "sse",
       options: {
         port: PORT,
-        auth: {
-          provider: new APIKeyAuthProvider({ keys: [API_KEY] })
-        }
       }
     }
   }

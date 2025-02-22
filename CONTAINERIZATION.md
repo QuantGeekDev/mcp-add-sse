@@ -6,10 +6,28 @@ This document outlines the containerization strategy for the Calculator MCP serv
 ## Docker Configuration
 
 ### Base Image
-We will use `node:20-slim` as our base image to minimize container size while providing all necessary Node.js functionality.
+We use `node:20-slim` as our base image to minimize container size while providing all necessary Node.js functionality.
 
 ### Dockerfile Structure
 ```dockerfile
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies
+RUN npm install
+
+# Copy source files
+COPY tsconfig.json .
+COPY src/ src/
+
+# Build TypeScript code
+RUN npm run build
+
+# Production stage
 FROM node:20-slim
 
 WORKDIR /app
@@ -17,34 +35,24 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm install
+# Install only the dependencies needed for production
+RUN npm install --omit=dev \
+    && npm install typescript@5.3.3
 
-# Copy source code
-COPY . .
+# Copy built files from builder stage
+COPY --from=builder /app/dist ./dist
 
-# Build TypeScript code
-RUN npm run build
+# Create a non-root user
+RUN useradd -r -u 1001 -g root appuser \
+    && chown -R appuser:root /app
+USER appuser
 
-# Expose port for SSE
-EXPOSE 3000
+# Expose the port the app runs on
+ENV PORT=3000
+EXPOSE $PORT
 
-# Set environment variable for JWT secret
-ENV JWT_SECRET=changeme
-
-# Start the server
-CMD ["npm", "start"]
-```
-
-### .dockerignore
-To optimize build context and prevent unnecessary files from being included:
-```
-node_modules
-npm-debug.log
-dist
-.git
-.gitignore
-*.md
+# Start the application
+CMD ["node", "dist/index.js"]
 ```
 
 ## Environment Variables
@@ -53,6 +61,8 @@ The following environment variables should be configurable:
 - `PORT`: Server port (default: 3000)
 
 ## Build and Run Instructions
+
+### Local Development
 1. Build the image:
    ```bash
    docker build -t calculator-mcp .
@@ -63,10 +73,50 @@ The following environment variables should be configurable:
    docker run -p 3000:3000 -e JWT_SECRET=your_secret calculator-mcp
    ```
 
+### Publishing to Docker Hub
+
+1. Tag the image with your Docker Hub username:
+   ```bash
+   docker tag calculator-mcp <your-dockerhub-username>/calculator-mcp:latest
+   ```
+
+2. Log in to Docker Hub:
+   ```bash
+   docker login
+   ```
+
+3. Push the image:
+   ```bash
+   docker push <your-dockerhub-username>/calculator-mcp:latest
+   ```
+
+### Running on EC2
+
+1. SSH into your EC2 instance:
+   ```bash
+   ssh -i your-key.pem ec2-user@your-ec2-ip
+   ```
+
+2. Install Docker if not already installed:
+   ```bash
+   sudo yum update -y
+   sudo yum install docker -y
+   sudo service docker start
+   sudo usermod -a -G docker ec2-user
+   ```
+
+3. Pull and run the container:
+   ```bash
+   docker pull <your-dockerhub-username>/calculator-mcp:latest
+   docker run -d -p 3000:3000 \
+     -e JWT_SECRET=your_secure_secret \
+     <your-dockerhub-username>/calculator-mcp:latest
+   ```
+
 ## Security Considerations
 1. Use environment variables for sensitive data (JWT secret)
-2. Run container as non-root user
-3. Use multi-stage builds in production to minimize final image size
+2. Run container as non-root user (implemented)
+3. Use multi-stage builds to minimize final image size (implemented)
 4. Regularly update base image for security patches
 
 ## Production Recommendations
@@ -76,8 +126,7 @@ The following environment variables should be configurable:
 4. Implement proper secret management
 5. Use container orchestration (e.g., Kubernetes) for scaling
 
-## Next Steps
-1. Switch to Code mode to implement the Dockerfile and .dockerignore
-2. Update the application code to use environment variables
-3. Set up CI/CD pipeline for container builds
-4. Implement monitoring and logging solutions
+## EC2 Security Group Configuration
+Ensure your EC2 security group allows:
+- Inbound TCP port 3000 for the MCP server
+- SSH access (port 22) for management
